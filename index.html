@@ -1,31 +1,46 @@
+
 <!DOCTYPE html>
-<html>
+<html lang="zh-TW">
 <head>
     <meta charset="utf-8">
-    <title>我的專屬工具</title>
+    <title>我的專屬系統</title>
     <!-- 引入 Google 登入前端 SDK -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
-        #login-screen {
-            display: flex; 
-            flex-direction: 
-            column; justify-content: 
-            center; 
-            align-items: center; 
-            height: 100vh; 
+        body, html {
             margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden; /* 避免出現雙重捲軸 */
+            font-family: sans-serif;
+        }
+        /* 登入畫面（完美置中） */
+        #login-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f6f8;
+        }
+        /* iframe 預設隱藏，且設為絕對定位滿版 */
+        #app-iframe {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            border: none;
+            z-index: 9999; /* 確保蓋在最上層 */
         }
     </style>
 </head>
 <body>
-    <div id="app" style="display: none;">
-        <h1>歡迎回來！這是你的專屬系統</h1>
-        <!-- 你的工具內容 -->
-    </div>
 
+    <!-- 登入畫面 -->
     <div id="login-screen">
         <h2>請先登入 Google 以繼續</h2>
-        <!-- Google 官方登入按鈕容器 -->
         <div id="g_id_onload"
              data-client_id="631286180189-qvpd6juh5l358h6af493d900mtfopfot.apps.googleusercontent.com"
              data-callback="handleCredentialResponse"
@@ -34,34 +49,44 @@
         <div class="g_id_signin" data-type="standard"></div>
     </div>
 
+    <!-- 預設隱藏的 iframe，準備用來載入 GAS 畫面 -->
+    <iframe id="app-iframe"></iframe>
+
     <script>
         let currentUserEmail = ""; // 全域變數記錄當前登入者
+        let GAS_URL = "https://script.google.com/macros/s/AKfycbz6NyX22a5CNjo5OrW1wKu5xfhXo-pIgZLZNPnr4X8/dev";
         
-        // 當你點擊登入並通過驗證後，會收到 Google 的憑證
         function handleCredentialResponse(response) {
-            // response.credential 裡面包含了你的身分加密資訊
-            // 我們把它傳給 GAS 後端去驗證
-            fetch('https://script.google.com/macros/s/AKfycbz6NyX22a5CNjo5OrW1wKu5xfhXo-pIgZLZNPnr4X8/dev', {
+            // 1. 將 Google 登入的 Token 送給 GAS 驗證
+            fetch('你的_GAS_網址', {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({ 
-                        action: 'login',
-                        token: response.credential 
-                    })
+                    action: 'login', 
+                    token: response.credential 
+                })
             })
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    currentUserEmail = data.email; // 把驗證成功的 Email 存起來！
+                    // 2. 驗證成功！把 token 帶在網址參數傳給 GAS
+                    const gasUrl = GAS_URL + '?token=' + encodeURIComponent(response.credential);
                     
-                    // 驗證成功！隱藏登入畫面，顯示主系統
-                    document.getElementById('login-screen').style.display = 'none';
-                    document.getElementById('app').style.display = 'block';
+                    const iframe = document.getElementById('app-iframe');
+                    iframe.src = gasUrl; // 設定 iframe 的來源網址
+                    iframe.style.display = 'block'; // 顯示 iframe
+                    
+                    // (選用) 如果你想把底下的登入畫面直接移除或隱藏
+                    // document.getElementById('login-screen').style.display = 'none';
                 } else {
-                    alert('權限不足！');
+                    alert('權限不足，你不在允許的名單內！');
                 }
+            })
+            .catch(error => {
+                alert('登入發生錯誤');
             });
         }
     </script>
 </body>
 </html>
+
