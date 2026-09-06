@@ -96,6 +96,9 @@
                     document.open();
                     document.write(data.html);
                     document.close();
+
+                    // 【新增這行】強制將瀏覽器分頁標題改成 GAS 傳過來的 title！
+                    document.title = data.title || "股票資產管理儀表板";
                 } else {
                     // 失敗通常是因為 Google Token 過期了 (預設效期 1 小時)
                     console.log('登入失效：', data.message);
