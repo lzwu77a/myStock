@@ -40,7 +40,7 @@
 
     <!-- 登入畫面 -->
     <div id="login-screen">
-        <h2>請先登入 Google 以繼續 - v1</h2>
+        <h2>請先登入 Google 以繼續 - v2</h2>
         <div id="g_id_onload"
              data-client_id="631286180189-qvpd6juh5l358h6af493d900mtfopfot.apps.googleusercontent.com"
              data-callback="handleCredentialResponse"
@@ -60,7 +60,7 @@
         function handleCredentialResponse(response) {
             // 1. 將 Google 登入的 Token 送給 GAS 驗證
             fetch('你的_GAS_網址', {
-                method: 'POST',
+                method: 'GET',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({ 
                     action: 'login', 
