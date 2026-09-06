@@ -40,7 +40,7 @@
 
     <!-- 登入畫面 -->
     <div id="login-screen">
-        <h2>請先登入 Google 以繼續 - v5</h2>
+        <h2>請先登入 Google 以繼續 - v6</h2>
         <div id="g_id_onload"
              data-client_id="631286180189-qvpd6juh5l358h6af493d900mtfopfot.apps.googleusercontent.com"
              data-callback="handleCredentialResponse"
@@ -56,30 +56,13 @@
         let currentUserEmail = ""; // 全域變數記錄當前登入者
         let GAS_URL = "https://script.google.com/macros/s/AKfycbzZdRzcWomXmjtNyBDssPwWUzwdsjToydIlrHepQMW-2oX2aQpo0MAWOS7uiqhaYFmd/exec";
         
-
         function handleCredentialResponse(response) {
-            // 透過 GET 傳遞 action=login 與 token
-            const verifyUrl = GAS_URL + '?action=login&token=' + encodeURIComponent(response.credential);
-
-            fetch(verifyUrl, {
-                method: 'GET'
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    // 驗證成功，帶著 token 展開 iframe 載入主畫面
-                    const gasUrl = GAS_URL + '?token=' + encodeURIComponent(response.credential);
-                    const iframe = document.getElementById('app-iframe');
-                    iframe.src = gasUrl;
-                    iframe.style.display = 'block';
-                } else {
-                    alert('權限不足，你不在允許的名單內！');
-                }
-            })
-            .catch(error => {
-                alert('登入發生錯誤');
-                console.error(error);
-            });
+            // 直接把 Google 登入的 token 帶給 iframe，讓 GAS 負責驗證與載入畫面！
+            const gasUrl = GAS_URL + '?token=' + encodeURIComponent(response.credential);
+            
+            const iframe = document.getElementById('app-iframe');
+            iframe.src = gasUrl;          // 設定 iframe 網址
+            iframe.style.display = 'block'; // 顯示 iframe 蓋過登入畫面
         }
     </script>
 </body>
