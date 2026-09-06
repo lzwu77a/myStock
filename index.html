@@ -1,46 +1,20 @@
-
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
     <meta charset="utf-8">
     <title>我的專屬系統</title>
-    <!-- 引入 Google 登入前端 SDK -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            overflow: hidden; /* 避免出現雙重捲軸 */
-            font-family: sans-serif;
-        }
-        /* 登入畫面（完美置中） */
+        body, html { margin: 0; padding: 0; height: 100%; font-family: sans-serif; background-color: #f4f6f8; }
         #login-screen {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f4f6f8;
-        }
-        /* iframe 預設隱藏，且設為絕對定位滿版 */
-        #app-iframe {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            border: none;
-            z-index: 9999; /* 確保蓋在最上層 */
+            display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh;
         }
     </style>
 </head>
 <body>
 
-    <!-- 登入畫面 -->
     <div id="login-screen">
-        <h2>請先登入 Google 以繼續 - v6</h2>
+        <h2>請先登入 Google 以繼續</h2>
         <div id="g_id_onload"
              data-client_id="631286180189-qvpd6juh5l358h6af493d900mtfopfot.apps.googleusercontent.com"
              data-callback="handleCredentialResponse"
@@ -49,20 +23,35 @@
         <div class="g_id_signin" data-type="standard"></div>
     </div>
 
-    <!-- 預設隱藏的 iframe，準備用來載入 GAS 畫面 -->
-    <iframe id="app-iframe"></iframe>
-
     <script>
-        let currentUserEmail = ""; // 全域變數記錄當前登入者
-        let GAS_URL = "https://script.google.com/macros/s/AKfycbzZdRzcWomXmjtNyBDssPwWUzwdsjToydIlrHepQMW-2oX2aQpo0MAWOS7uiqhaYFmd/exec";
-        
+        // 把這裡換成你剛剛發布「新版本」後的 GAS 網址
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbzZdRzcWomXmjtNyBDssPwWUzwdsjToydIlrHepQMW-2oX2aQpo0MAWOS7uiqhaYFmd/exec';
+
         function handleCredentialResponse(response) {
-            // 直接把 Google 登入的 token 帶給 iframe，讓 GAS 負責驗證與載入畫面！
-            const gasUrl = GAS_URL + '?token=' + encodeURIComponent(response.credential);
-            
-            const iframe = document.getElementById('app-iframe');
-            iframe.src = gasUrl;          // 設定 iframe 網址
-            iframe.style.display = 'block'; // 顯示 iframe 蓋過登入畫面
+            // 發送 POST 請求，要求 GAS 把 HTML 吐出來
+            fetch(GAS_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ 
+                    action: 'getHtml', 
+                    token: response.credential 
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // 拿到原始 HTML 了！直接把整個網頁換掉！
+                    document.open();
+                    document.write(data.html);
+                    document.close();
+                } else {
+                    alert('登入失敗：' + (data.message || '權限不足'));
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                alert('載入失敗，請確認 GAS 網址與 CORS 設定');
+            });
         }
     </script>
 </body>
