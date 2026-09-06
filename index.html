@@ -1,1 +1,49 @@
-HELLO
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>我的專屬工具</title>
+    <!-- 引入 Google 登入前端 SDK -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+    <div id="app" style="display: none;">
+        <h1>歡迎回來！這是你的專屬系統</h1>
+        <!-- 你的工具內容 -->
+    </div>
+
+    <div id="login-screen" style="text-align: center; margin-top: 100px;">
+        <h2>請先登入 Google 以繼續</h2>
+        <!-- Google 官方登入按鈕容器 -->
+        <div id="g_id_onload"
+             data-client_id="你的_Google_用戶端ID(Client ID)"
+             data-callback="handleCredentialResponse"
+             data-auto_prompt="false">
+        </div>
+        <div class="g_id_signin" data-type="standard"></div>
+    </div>
+
+    <script>
+        // 當你點擊登入並通過驗證後，會收到 Google 的憑證
+        function handleCredentialResponse(response) {
+            // response.credential 裡面包含了你的身分加密資訊
+            // 我們把它傳給 GAS 後端去驗證
+            fetch('你的_GAS_網址', {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ token: response.credential })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // 驗證成功！隱藏登入畫面，顯示主系統
+                    document.getElementById('login-screen').style.display = 'none';
+                    document.getElementById('app').style.display = 'block';
+                } else {
+                    alert('權限不足，你不是管理者！');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
