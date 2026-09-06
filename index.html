@@ -72,7 +72,7 @@
                     throw new Error('GAS 回應狀態錯誤: ' + res.status);
                 }
                 return res.json();
-            }
+            })
             .then(data => {
                 if (data.success) {
                     // 2. 驗證成功！把 token 帶在網址參數傳給 GAS
