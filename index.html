@@ -40,7 +40,7 @@
 
     <!-- 登入畫面 -->
     <div id="login-screen">
-        <h2>請先登入 Google 以繼續 - v2</h2>
+        <h2>請先登入 Google 以繼續 - v3</h2>
         <div id="g_id_onload"
              data-client_id="631286180189-qvpd6juh5l358h6af493d900mtfopfot.apps.googleusercontent.com"
              data-callback="handleCredentialResponse"
@@ -56,41 +56,29 @@
         let currentUserEmail = ""; // 全域變數記錄當前登入者
         let GAS_URL = "https://script.google.com/macros/s/AKfycbzZdRzcWomXmjtNyBDssPwWUzwdsjToydIlrHepQMW-2oX2aQpo0MAWOS7uiqhaYFmd/exec";
         
-        
+
         function handleCredentialResponse(response) {
-            // 1. 將 Google 登入的 Token 送給 GAS 驗證
-            fetch('你的_GAS_網址', {
-                method: 'GET',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ 
-                    action: 'login', 
-                    token: response.credential 
-                })
+            // 透過 GET 傳遞 action=login 與 token
+            const verifyUrl = GAS_URL + '?action=login&token=' + encodeURIComponent(response.credential);
+
+            fetch(verifyUrl, {
+                method: 'GET'
             })
-            .then(res => { 
-                // 檢查 HTTP 狀態碼
-                if (!res.ok) {
-                    throw new Error('GAS 回應狀態錯誤: ' + res.status);
-                }
-                return res.json();
-            })
+            .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    // 2. 驗證成功！把 token 帶在網址參數傳給 GAS
-                    const gasUrl = GAS_URL + '?token=' + encodeURIComponent(response.credential);
-                    
+                    // 驗證成功，帶著 token 展開 iframe 載入主畫面
+                    const gasUrl = '你的_GAS_網址?token=' + encodeURIComponent(response.credential);
                     const iframe = document.getElementById('app-iframe');
-                    iframe.src = gasUrl; // 設定 iframe 的來源網址
-                    iframe.style.display = 'block'; // 顯示 iframe
-                    
-                    // (選用) 如果你想把底下的登入畫面直接移除或隱藏
-                    // document.getElementById('login-screen').style.display = 'none';
+                    iframe.src = gasUrl;
+                    iframe.style.display = 'block';
                 } else {
                     alert('權限不足，你不在允許的名單內！');
                 }
             })
             .catch(error => {
-                alert('登入發生錯誤: ' + error.message);
+                alert('登入發生錯誤');
+                console.error(error);
             });
         }
     </script>
