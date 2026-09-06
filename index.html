@@ -24,23 +24,30 @@
     </div>
 
     <script>
+        let currentUserEmail = ""; // 全域變數記錄當前登入者
+        
         // 當你點擊登入並通過驗證後，會收到 Google 的憑證
         function handleCredentialResponse(response) {
             // response.credential 裡面包含了你的身分加密資訊
             // 我們把它傳給 GAS 後端去驗證
-            fetch('你的_GAS_網址', {
+            fetch('https://script.google.com/macros/s/AKfycbz6NyX22a5CNjo5OrW1wKu5xfhXo-pIgZLZNPnr4X8/dev', {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ token: response.credential })
+                body: JSON.stringify({ 
+                        action: 'login',
+                        token: response.credential 
+                    })
             })
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
+                    currentUserEmail = data.email; // 把驗證成功的 Email 存起來！
+                    
                     // 驗證成功！隱藏登入畫面，顯示主系統
                     document.getElementById('login-screen').style.display = 'none';
                     document.getElementById('app').style.display = 'block';
                 } else {
-                    alert('權限不足，你不是管理者！');
+                    alert('權限不足！');
                 }
             });
         }
