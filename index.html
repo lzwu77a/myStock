@@ -119,6 +119,26 @@
             document.getElementById('loading-screen').style.display = 'none';
             document.getElementById('login-screen').style.display = 'flex';
         }
+
+        async function handleLogout() {
+          const sessionToken = localStorage.getItem('myAppSession');
+  
+          if (sessionToken) {
+            try {
+              // 1. 通知後端把 Google Sheet 裡的那列資料刪掉，讓這把鑰匙徹底失效
+              await callGAS('logoutUser', sessionToken);
+            } catch (e) {
+              console.warn("通知後端登出時發生異常，但前端仍會清除狀態", e);
+            }
+          }
+          
+          // 2. 清除瀏覽器裡的鑰匙
+          localStorage.removeItem('myAppSession');
+          
+          // 3. 重新載入網頁，系統抓不到 Token 就會自動退回 Google 登入畫面
+          alert("已成功登出！");
+          window.location.reload(); 
+        }
     </script>
 </body>
 </html>
