@@ -35,6 +35,38 @@
     </div>
 
     <script>
+        // 這是你唯一需要寫死在前端的網址 (路由器網址)
+        const ROUTER_URL = "https://script.google.com/macros/s/AKfycbzBgdQ4F0-1kPnf7RrrXqV3rq56geMhFYGtQEGVn09rFDTKp8Y49o02v7Uw56dWI6oxMQ/exec";
+        
+        // 宣告一個全域變數，用來存放動態取得的網址
+        window.APP_CONFIG = {}; 
+        
+        window.onload = async function() {
+            // 預設先顯示「載入中」畫面
+            document.getElementById('loading-screen').style.display = 'flex';
+            document.getElementById('login-screen').style.display = 'none';
+        
+            try {
+                // 1. 先去入口網址取得真實的 API 網址
+                const response = await fetch(ROUTER_URL);
+                window.APP_CONFIG = await response.json();
+                
+                // 2. 取得網址後，才開始檢查登入狀態
+                const savedSession = localStorage.getItem('myAppSession'); 
+                
+                if (savedSession) {
+                    // 如果有鑰匙，直接去跟真實 GAS 要畫面
+                    loadDashboard(savedSession);
+                } else {
+                    // 如果沒有鑰匙，顯示登入畫面
+                    showLoginScreen();
+                }
+            } catch (error) {
+                console.error("無法取得伺服器設定", error);
+                alert("系統初始化失敗，請檢查網路連線");
+            }
+        };
+  /*
         const GAS_URL = "https://script.google.com/macros/s/AKfycbwXeh_4ePOs-RlzsdtKjUTApEsqb5Z1kReLVaAGSZ5NHHuMV_VN4RUNQ5lrrj2VbCRL/exec";
 
         // 1. 網頁一載入，統一檢查 'myAppSession'
@@ -47,7 +79,7 @@
                 showLoginScreen();
             }
         };
-
+*/
         // 2. Google 登入按鈕成功後觸發
         function handleCredentialResponse(response) {
             const googleToken = response.credential; // 統一命名為 googleToken
@@ -85,7 +117,7 @@
 
         // 3. 負責向 GAS 拿 HTML 的核心邏輯 (使用長效鑰匙)
         function loadDashboard(sessionToken) {
-            fetch(GAS_URL, {
+            fetch(window.APP_CONFIG.myStock_GAS, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({ 
