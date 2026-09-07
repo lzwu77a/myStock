@@ -34,6 +34,8 @@
     </div>
 
     <script>
+        var webAppGas = "myStock_GAS";
+        
         // 這是你唯一需要寫死在前端的網址 (路由器網址)
         const ROUTER_URL = "https://script.google.com/macros/s/AKfycbzBgdQ4F0-1kPnf7RrrXqV3rq56geMhFYGtQEGVn09rFDTKp8Y49o02v7Uw56dWI6oxMQ/exec";
         
@@ -76,7 +78,7 @@
             document.getElementById('loading-screen').style.display = 'flex';
 
             // 向 GAS 發送 action: 'loginAndGetSession' 來換取長效鑰匙
-            fetch(window.APP_CONFIG.myStock_GAS, {
+            fetch(window.APP_CONFIG[webAppGas], {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({ 
@@ -105,7 +107,7 @@
 
         // 3. 負責向 GAS 拿 HTML 的核心邏輯 (使用長效鑰匙)
         function loadDashboard(sessionToken) {
-            fetch(window.APP_CONFIG.myStock_GAS, {
+            fetch(window.APP_CONFIG[webAppGas], {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({ 
