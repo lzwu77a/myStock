@@ -26,7 +26,7 @@
 
     <div id="login-screen">
         <h2>請先登入 Google 以繼續</h2>
-        <div class="g_id_signin" data-type="standard"></div>
+        <div id="googleBtnDiv"></div>
     </div>
 
     <script>
@@ -169,10 +169,11 @@
                 auto_prompt: false
             });
             
-            // 渲染按鈕到畫面上
+            // 2. 畫出按鈕！
             google.accounts.id.renderButton(
-                document.querySelector('.g_id_signin'),
-                { theme: 'outline', size: 'large' } // 可以在這裡設定按鈕樣式
+                // 👇 【關鍵修改】改成抓取你剛剛設定的普通 ID
+                document.getElementById('googleBtnDiv'),
+                { theme: 'outline', size: 'large' }
             );
         } else {
             console.error("Google 登入 SDK 尚未載入完成");
