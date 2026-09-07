@@ -3,22 +3,14 @@
 <head>
     <meta charset="utf-8">
     <title>股票資產管理儀表板</title>
-    <!-- 引入 Google 登入前端 SDK -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    
-    <!-- 放在這裡，解決 document.write 的載入警告 -->
     <script src="https://www.gstatic.com/charts/loader.js"></script>
-    
     <style>
         body, html { margin: 0; padding: 0; height: 100%; font-family: sans-serif; background-color: #f4f6f8; }
-        
-        /* 登入畫面 (預設先隱藏) */
         #login-screen {
             display: none; 
             flex-direction: column; justify-content: center; align-items: center; height: 100vh;
         }
-        
-        /* 系統載入中的過場畫面 */
         #loading-screen {
             display: flex; 
             flex-direction: column; justify-content: center; align-items: center; height: 100vh;
@@ -28,12 +20,10 @@
 </head>
 <body>
 
-    <!-- 過場畫面 -->
     <div id="loading-screen">
         <h2>🔄 系統載入中，請稍候...</h2>
     </div>
 
-    <!-- 登入畫面 -->
     <div id="login-screen">
         <h2>請先登入 Google 以繼續</h2>
         <div id="g_id_onload"
@@ -47,64 +37,74 @@
     <script>
         const GAS_URL = "https://script.google.com/macros/s/AKfycbwXeh_4ePOs-RlzsdtKjUTApEsqb5Z1kReLVaAGSZ5NHHuMV_VN4RUNQ5lrrj2VbCRL/exec";
 
-        // 1. 網頁一載入，馬上檢查有沒有存過 Token
+        // 1. 網頁一載入，統一檢查 'myAppSession'
         window.onload = function() {
-            // 使用 localStorage，關掉分頁再開也會記得
-            const savedToken = localStorage.getItem('gasToken'); 
+            const savedSession = localStorage.getItem('myAppSession'); 
             
-            if (savedToken) {
-                // 如果有記憶，直接去跟 GAS 要畫面 (跳過登入)
-                loadDashboard(savedToken);
+            if (savedSession) {
+                loadDashboard(savedSession);
             } else {
-                // 如果沒有記憶，顯示登入畫面
                 showLoginScreen();
             }
         };
 
         // 2. Google 登入按鈕成功後觸發
         function handleCredentialResponse(response) {
-            const token = response.credential;
-            
-            // 把 Token 存進瀏覽器記憶體
-            localStorage.setItem('gasToken', token); 
-            // 為了讓 Polyfill 攔截器也能拿到 Token，同步存一份進 sessionStorage
-            sessionStorage.setItem('gasToken', token); 
+            const googleToken = response.credential; // 統一命名為 googleToken
             
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('loading-screen').style.display = 'flex';
-            
-            loadDashboard(token);
-        }
 
-        // 3. 負責向 GAS 拿 HTML 的核心邏輯
-        function loadDashboard(token) {
+            // 向 GAS 發送 action: 'loginAndGetSession' 來換取長效鑰匙
             fetch(GAS_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({ 
-                    action: 'getHtml', 
-                    token: token 
+                    action: 'loginAndGetSession', 
+                    token: googleToken 
                 })
             })
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    // 同步給攔截器用
-                    sessionStorage.setItem('gasToken', token); 
-                    
-                    // 成功拿到畫面，直接覆寫網頁
+                    // 登入成功，將長效期 Token 存起來
+                    localStorage.setItem('myAppSession', data.sessionToken);
+                    console.log("登入成功，已取得長效授權！");
+                    // 將拿到的長效鑰匙傳給 loadDashboard 繼續載入畫面
+                    loadDashboard(data.sessionToken);
+                } else {
+                    alert("登入失敗：" + data.message);
+                    showLoginScreen();
+                }
+            })
+            .catch(err => {
+                console.error("登入請求失敗", err);
+                showLoginScreen();
+            });
+        }
+
+        // 3. 負責向 GAS 拿 HTML 的核心邏輯 (使用長效鑰匙)
+        function loadDashboard(sessionToken) {
+            fetch(GAS_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ 
+                    action: 'getHtml', 
+                    token: sessionToken 
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
                     document.open();
                     document.write(data.html);
                     document.close();
-
-                    // 【新增這行】強制將瀏覽器分頁標題改成 GAS 傳過來的 title！
                     document.title = data.title || "股票資產管理儀表板";
                 } else {
-                    // 失敗通常是因為 Google Token 過期了 (預設效期 1 小時)
-                    console.log('登入失效：', data.message);
-                    localStorage.removeItem('gasToken'); // 忘記過期的 Token
-                    sessionStorage.removeItem('gasToken');
-                    showLoginScreen(); // 重新顯示登入畫面讓你重登
+                    console.log('連線失效：', data.message);
+                    // 統一清除 'myAppSession'
+                    localStorage.removeItem('myAppSession'); 
+                    showLoginScreen();
                 }
             })
             .catch(error => {
