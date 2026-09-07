@@ -66,20 +66,7 @@
                 alert("系統初始化失敗，請檢查網路連線");
             }
         };
-  /*
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbwXeh_4ePOs-RlzsdtKjUTApEsqb5Z1kReLVaAGSZ5NHHuMV_VN4RUNQ5lrrj2VbCRL/exec";
-
-        // 1. 網頁一載入，統一檢查 'myAppSession'
-        window.onload = function() {
-            const savedSession = localStorage.getItem('myAppSession'); 
-            
-            if (savedSession) {
-                loadDashboard(savedSession);
-            } else {
-                showLoginScreen();
-            }
-        };
-*/
+  
         // 2. Google 登入按鈕成功後觸發
         function handleCredentialResponse(response) {
             const googleToken = response.credential; // 統一命名為 googleToken
