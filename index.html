@@ -27,7 +27,7 @@
     <div id="login-screen">
         <h2>請先登入 Google 以繼續</h2>
         <div id="g_id_onload"
-             data-client_id="631286180189-qvpd6juh5l358h6af493d900mtfopfot.apps.googleusercontent.com" 
+             <!-- data-client_id="631286180189-qvpd6juh5l358h6af493d900mtfopfot.apps.googleusercontent.com" -->
              data-callback="handleCredentialResponse"
              data-auto_prompt="false">
         </div>
@@ -58,6 +58,8 @@
                     // 如果有鑰匙，直接去跟真實 GAS 要畫面
                     loadDashboard(savedSession);
                 } else {
+                    // 3. 【關鍵新增】如果是未登入狀態，手動初始化 Google 登入按鈕
+                    initializeGoogleSignIn();
                     // 如果沒有鑰匙，顯示登入畫面
                     showLoginScreen();
                 }
@@ -158,6 +160,30 @@
           alert("已成功登出！");
           window.location.reload(); 
         }
+
+    // 【新增函式】負責用動態取得的 clientId 來產生按鈕
+    function initializeGoogleSignIn() {
+        // 確保 Google library 已經載入完畢
+        if (window.google && google.accounts && google.accounts.id) {
+            google.accounts.id.initialize({
+                // 從路由器設定中抓取 clientId
+                client_id: window.APP_CONFIG.clientId, 
+                callback: handleCredentialResponse, // 對應你原本的成功回呼函式
+                auto_prompt: false
+            });
+            
+            // 渲染按鈕到畫面上
+            google.accounts.id.renderButton(
+                document.querySelector('.g_id_signin'),
+                { theme: 'outline', size: 'large' } // 可以在這裡設定按鈕樣式
+            );
+        } else {
+            console.error("Google 登入 SDK 尚未載入完成");
+            // 可以加上一個小延遲重試機制，確保載入成功
+            setTimeout(initializeGoogleSignIn, 500); 
+        }
+    }
+        
     </script>
 </body>
 </html>
