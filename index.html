@@ -75,7 +75,7 @@
             document.getElementById('loading-screen').style.display = 'flex';
 
             // 向 GAS 發送 action: 'loginAndGetSession' 來換取長效鑰匙
-            fetch(GAS_URL, {
+            fetch(window.APP_CONFIG.myStock_GAS, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({ 
