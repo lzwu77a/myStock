@@ -48,7 +48,8 @@
                 // 1. 先去入口網址取得真實的 API 網址
                 const response = await fetch(ROUTER_URL);
                 window.APP_CONFIG = await response.json();
-                console.log(JSON.stringify(window.APP_CONFIG));
+                //console.log(JSON.stringify(window.APP_CONFIG));
+                console.log(window.APP_CONFIG[webAppGas]);
                 console.log(window.APP_CONFIG["myApp_SID"]);
                 
                 // 2. 取得網址後，才開始檢查登入狀態
