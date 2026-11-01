@@ -33,7 +33,8 @@
         var webAppGas = "myStock_GAS";
         
         // 這是你唯一需要寫死在前端的網址 (路由器網址)
-        const ROUTER_URL = "https://script.google.com/macros/s/AKfycbydkStLun0kX0qUCbWPBnWIDDgP7SGoOtzG_rVOBCB0Z_dU_F46-LOqvFxnO4X7kvGBAg/exec?action=getData";
+        const APP_GAS = "https://script.google.com/macros/s/AKfycbydkStLun0kX0qUCbWPBnWIDDgP7SGoOtzG_rVOBCB0Z_dU_F46-LOqvFxnO4X7kvGBAg/exec";
+        const ROUTER_URL = APP_GAS + "?action=getData";
         
         // 宣告一個全域變數，用來存放動態取得的網址
         window.APP_CONFIG = {}; 
@@ -79,6 +80,7 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({ 
+                    myAppGAS: APP_GAS,
                     myAppSID: window.APP_CONFIG["myApp_SID"],
                     action: 'loginAndGetSession', 
                     token: googleToken 
@@ -109,6 +111,7 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({ 
+                    myAppGAS: APP_GAS,
                     myAppSID: window.APP_CONFIG["myApp_SID"],
                     action: 'getHtml', 
                     token: sessionToken 
